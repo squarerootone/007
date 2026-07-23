@@ -1,0 +1,21 @@
+# Dependency artifacts that can appear when plugins are installed in config dir.
+node_modules/
+package.json
+package-lock.json
+bun.lock
+pnpm-lock.yaml
+yarn.lock
+
+# OpenCode/XDG runtime state should live outside git, but ignore defensively
+# because this directory may be mounted as ~/.config/opencode.
+.cache/
+.local/
+.npm/
+.config/gh/
+
+# Logs and temporary files.
+*.log
+*.tmp
+*.bak
+*.swp
+.DS_Store

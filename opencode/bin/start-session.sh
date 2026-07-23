@@ -4,11 +4,14 @@ set -euo pipefail
 usage() {
   cat <<'EOF'
 Usage:
-  start-session.sh <repo-name> <worktree-name> <session-title> <prompt...>
+  start-session.sh <repo-name> <topic-slug> <prompt...>
 
 Creates a git worktree under /workspace/home/worktrees, starts a new OpenCode
 session against the local server in that worktree, and appends the session URL
 to /workspace/home/SESSIONS.md.
+
+The topic slug is used under /workspace/home/worktrees/<repo-name>/, the branch
+is created as feat/<topic-slug>, and the title is derived from the topic slug.
 
 Environment overrides:
   OPENCODE_SESSION_SERVER_URL  default: http://127.0.0.1:4096
@@ -23,15 +26,14 @@ if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
   exit 0
 fi
 
-if [[ $# -lt 4 ]]; then
+if [[ $# -lt 3 ]]; then
   usage >&2
   exit 1
 fi
 
 repo_name="$1"
-worktree_name="$2"
-session_title="$3"
-shift 3
+topic_slug="$2"
+shift 2
 prompt="$*"
 
 repos_dir="/workspace/home/repos"
@@ -43,8 +45,15 @@ model="${OPENCODE_SESSION_MODEL:-openai/gpt-5.4}"
 agent="${OPENCODE_SESSION_AGENT:-build}"
 
 repo_path="${repos_dir}/${repo_name}"
-worktree_path="${worktrees_dir}/${worktree_name}"
-branch_name="${worktree_name}"
+repo_worktrees_dir="${worktrees_dir}/${repo_name}"
+worktree_path="${repo_worktrees_dir}/${topic_slug}"
+branch_name="feat/${topic_slug}"
+session_title="$(python3 - "$topic_slug" <<'PY'
+import sys
+
+print(sys.argv[1].replace('-', ' ').replace('_', ' ').title())
+PY
+)"
 
 if [[ -z "$public_url" ]]; then
   printf 'OPENCODE_SESSION_PUBLIC_URL must be set to the public OpenCode server URL.\n' >&2
@@ -61,6 +70,7 @@ if [[ -e "$worktree_path" ]]; then
   exit 1
 fi
 
+mkdir -p "$repo_worktrees_dir"
 git -C "$repo_path" worktree add -b "$branch_name" "$worktree_path" >/dev/null
 
 before_json="$(cd "$worktree_path" && opencode session list --format json --max-count 200 2>/dev/null || echo "[]")"

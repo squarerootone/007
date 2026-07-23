@@ -10,37 +10,20 @@ Use this skill for the shared OpenCode session registry at `/workspace/home/SESS
 ## Paths
 
 - Repos: `/workspace/home/repos`
-- Worktrees: `/workspace/home/worktrees`
+- Worktrees: `/workspace/home/worktrees/<repo-name>/<topic-slug>`
 - Session registry: `/workspace/home/SESSIONS.md`
 - Helper script: `/data/.config/opencode/bin/start-session.sh`
 
-## Start A Session
+## Commands
 
-When the user wants a new session:
+- Start sessions with `/start-session`; it owns repo selection, naming, worktree creation, and registry updates.
+- End sessions with `/end-session`; it owns session deletion and registry cleanup.
 
-1. Inspect `/workspace/home/repos` and choose the best matching repo.
-2. Create a short human-readable session title.
-3. Create a worktree slug as lowercase kebab-case, usually `<repo-name>-<topic>`.
-4. Run:
+## Naming
 
-```bash
-/data/.config/opencode/bin/start-session.sh <repo-name> <worktree-name> <session-title> <prompt>
-```
-
-5. Return the chosen repo, worktree path, session ID, and session URL.
-
-If multiple repos are plausible after inspection, ask one short clarification question instead of guessing.
-
-## Close A Session
-
-When the user says a session is complete:
-
-1. Read `/workspace/home/SESSIONS.md`.
-2. Find the matching entry by session ID, URL, or title.
-3. Remove that session block from the markdown list.
-4. Do not delete the git worktree unless the user explicitly asks.
-
-If the user asks to delete the OpenCode session too, run `opencode session delete <sessionID>`.
+- Use one lowercase kebab-case topic slug without the repo name.
+- The helper script creates worktrees under `/workspace/home/worktrees/<repo-name>/<topic-slug>`.
+- Branch names use `feat/<topic-slug>` and session titles are derived from the topic slug in Title Case.
 
 ## Registry Format
 

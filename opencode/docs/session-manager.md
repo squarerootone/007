@@ -104,6 +104,21 @@ The manager should:
 
 Deleting the target OpenCode session must be the final destructive step.
 
+## Completing PRs
+
+When a task session is ready to merge an approved PR, use `/lgtm` from that task session.
+
+The PR completion flow should:
+
+1. Treat `/lgtm` as explicit user approval.
+2. Require green GitHub checks before merge unless the user explicitly approves a bypass.
+3. Prefer fixing failing checks, pushing updates, and requesting reapproval instead of merging immediately.
+4. Squash merge the PR and delete the remote branch.
+5. Fast-forward local `main` in the base repo under `/workspace/home/repos/<repo>`.
+6. Hand worktree, branch, registry, and session cleanup back to the Session Manager with `request-session-cleanup.sh`.
+
+The task session must not delete its own current worktree during PR completion.
+
 ## Recovery
 
 If `SESSIONS.md` is lost, run:

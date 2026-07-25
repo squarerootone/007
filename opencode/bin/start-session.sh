@@ -4,11 +4,14 @@ set -euo pipefail
 usage() {
   cat <<'EOF'
 Usage:
-  start-session.sh <repo-name> <topic-slug> <prompt...>
+  start-session.sh <repo-name> <topic-slug> <request-context...>
 
 Creates a git worktree under /workspace/home/worktrees, starts a new OpenCode
 session against the local server in that worktree, and appends the session URL
 to /workspace/home/SESSIONS.md.
+
+The request context is printed for the launcher, but it is not sent to the new
+session. The new session receives only a minimal READY bootstrap prompt.
 
 The topic slug is used under /workspace/home/worktrees/<repo-name>/, the branch
 is created as feat/<topic-slug>, and the title is derived from the topic slug.
@@ -34,7 +37,7 @@ fi
 repo_name="$1"
 topic_slug="$2"
 shift 2
-prompt="$*"
+request="$*"
 
 repos_dir="/workspace/home/repos"
 worktrees_dir="/workspace/home/worktrees"
@@ -82,9 +85,9 @@ opencode run \
   --title "$session_title" \
   --agent "$agent" \
   --model "$model" \
-  "$prompt" >/dev/null 2>&1 || true
+  "Session created. Reply exactly: READY" >/dev/null 2>&1 || true
 
-after_json="$(cd "$worktree_path" && opencode session list --format json --max-count 200)"
+after_json="$(cd "$worktree_path" && opencode session list --format json --max-count 200 2>/dev/null || echo "[]")"
 
 session_id="$({
   python3 - "$before_json" "$after_json" "$worktree_path" "$session_title" <<'PY'
@@ -117,7 +120,10 @@ PY
 } || true)"
 
 if [[ -z "$session_id" ]]; then
+  git -C "$repo_path" worktree remove "$worktree_path" --force >/dev/null 2>&1 || true
+  git -C "$repo_path" branch -D "$branch_name" >/dev/null 2>&1 || true
   printf 'Created worktree, but could not determine the new session ID.\n' >&2
+  printf 'Removed the unregistered worktree and branch created for this attempt.\n' >&2
   exit 1
 fi
 
@@ -142,8 +148,9 @@ else:
         "# OpenCode Sessions\n\n"
         "Active session URLs live here so they can be retrieved from another device.\n\n"
         "Rules:\n"
-        "- Add a new session URL when a session starts.\n"
-        "- Remove the session URL when that session is completed.\n\n"
+        "- Keep exactly one manager session in the Manager session section.\n"
+        "- Add a new task session URL when a worktree-backed session starts.\n"
+        "- Remove a task session URL when that session is completed.\n\n"
         "Current active sessions:\n"
     )
 
@@ -167,3 +174,4 @@ printf 'worktree=%s\n' "$worktree_path"
 printf 'branch=%s\n' "$branch_name"
 printf 'session_id=%s\n' "$session_id"
 printf 'session_url=%s\n' "$session_url"
+printf 'request_context=%s\n' "$request"

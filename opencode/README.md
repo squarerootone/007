@@ -20,3 +20,7 @@ In the hosted container:
 - `bin/` - helper scripts used by commands and skills.
 
 Do not commit runtime state, auth files, logs, caches, or dependency directories here.
+
+## Session Manager
+
+Use `/bootstrap-session-manager` or `/data/.config/opencode/bin/bootstrap-session-manager.sh` to create the durable manager session in `/workspace/home` after bootstrapping a new OpenCode server. See `docs/session-manager.md` for the full workflow.

@@ -24,3 +24,9 @@ Do not commit runtime state, auth files, logs, caches, or dependency directories
 ## Session Manager
 
 Use `/bootstrap-session-manager` or `/data/.config/opencode/bin/bootstrap-session-manager.sh` to create the durable manager session in `/workspace/home` after bootstrapping a new OpenCode server. See `docs/session-manager.md` for the full workflow.
+
+## Pull Requests
+
+Use `/pr` to publish the current task branch. The command treats invocation as approval to commit and push local changes, creates the PR with `gh pr create` when needed, updates the existing PR when one already exists for the branch, and reports the PR URL and next step.
+
+Use `/lgtm` to complete an approved PR from a task session. The command treats `/lgtm` as explicit approval, requires green GitHub checks by default, uses squash merge with remote branch deletion, fast-forwards local `main` in the base repo under `/workspace/home/repos/<repo>`, and then hands local worktree and session cleanup to the Session Manager.

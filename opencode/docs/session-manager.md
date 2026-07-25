@@ -106,6 +106,16 @@ Deleting the target OpenCode session must be the final destructive step.
 
 ## Completing PRs
 
+When a task session is ready to open a PR, use `/pr` from that task session.
+
+The PR creation flow should:
+
+1. Treat `/pr` as confirmation that local changes are ready to commit and push.
+2. Commit and push the task branch to `origin` when needed.
+3. Reuse and update the existing PR for the branch when one already exists.
+4. Create the PR with a concise title and body when one does not exist.
+5. Report the PR URL and direct the user toward `/lgtm` after review and checks.
+
 When a task session is ready to merge an approved PR, use `/lgtm` from that task session.
 
 The PR completion flow should:
